@@ -1,7 +1,4 @@
 import {
-  Router
-} from "./chunk-7H7FB7MI.js";
-import {
   BrowserConfigurationAuthError,
   BrowserUtils_exports,
   EventMessageUtils,
@@ -9,8 +6,11 @@ import {
   InteractionType,
   NavigationClient,
   WrapperSKU
-} from "./chunk-TVDXA5XS.js";
-import "./chunk-SWLIRMOB.js";
+} from "./chunk-ADKTVJXV.js";
+import "./chunk-IBGPF7Q5.js";
+import {
+  Router
+} from "./chunk-7H7FB7MI.js";
 import "./chunk-MRG6UNF2.js";
 import "./chunk-AMJODPUC.js";
 import "./chunk-BOG7FDN5.js";

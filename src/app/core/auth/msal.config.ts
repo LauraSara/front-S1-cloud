@@ -3,14 +3,14 @@ import {
   MSAL_INSTANCE,
   MSAL_INTERCEPTOR_CONFIG,
   MsalGuardConfiguration,
-  MsalInterceptorConfiguration
+  MsalInterceptorConfiguration,
 } from '@azure/msal-angular';
 import {
   BrowserCacheLocation,
   InteractionType,
   IPublicClientApplication,
   LogLevel,
-  PublicClientApplication
+  PublicClientApplication,
 } from '@azure/msal-browser';
 import { environment } from '../../../environments/environment';
 
@@ -19,18 +19,19 @@ export function msalInstanceFactory(): IPublicClientApplication {
     auth: {
       clientId: environment.azure.clientId,
       authority: environment.azure.authority,
+      knownAuthorities: ['duoc2026cn1m.b2clogin.com'],
       redirectUri: environment.azure.redirectUri,
-      postLogoutRedirectUri: environment.azure.redirectUri
+      postLogoutRedirectUri: environment.azure.redirectUri,
     },
     cache: {
-      cacheLocation: BrowserCacheLocation.LocalStorage
+      cacheLocation: BrowserCacheLocation.LocalStorage,
     },
     system: {
       loggerOptions: {
         logLevel: LogLevel.Warning,
-        piiLoggingEnabled: false
-      }
-    }
+        piiLoggingEnabled: false,
+      },
+    },
   });
 }
 
@@ -38,8 +39,8 @@ export function msalGuardConfigFactory(): MsalGuardConfiguration {
   return {
     interactionType: InteractionType.Redirect,
     authRequest: {
-      scopes: environment.azure.scopes
-    }
+      scopes: environment.azure.scopes,
+    },
   };
 }
 
@@ -50,12 +51,15 @@ export function msalInterceptorConfigFactory(): MsalInterceptorConfiguration {
 
   return {
     interactionType: InteractionType.Redirect,
-    protectedResourceMap
+    protectedResourceMap,
   };
 }
 
 export const msalProviders = [
   { provide: MSAL_INSTANCE, useFactory: msalInstanceFactory },
   { provide: MSAL_GUARD_CONFIG, useFactory: msalGuardConfigFactory },
-  { provide: MSAL_INTERCEPTOR_CONFIG, useFactory: msalInterceptorConfigFactory }
+  {
+    provide: MSAL_INTERCEPTOR_CONFIG,
+    useFactory: msalInterceptorConfigFactory,
+  },
 ];
