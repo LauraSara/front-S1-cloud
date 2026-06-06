@@ -76,7 +76,8 @@ export class AlertService {
         this.patientService.getAll().pipe(
           map((patients) => ({
             ...alert,
-            pacienteNombre: this.resolvePatientName(alert.pacienteId, patients)
+            pacienteNombre: this.resolvePatientName(alert.pacienteId, patients),
+            pacienteHabitacion: patients.find((p) => p.id === alert.pacienteId)?.habitacion
           }))
         )
       )
@@ -84,10 +85,14 @@ export class AlertService {
   }
 
   private attachPatientNames(alerts: Alert[], patients: Patient[]): Alert[] {
-    return alerts.map((alert) => ({
-      ...alert,
-      pacienteNombre: this.resolvePatientName(alert.pacienteId, patients)
-    }));
+    return alerts.map((alert) => {
+      const patient = patients.find((p) => p.id === alert.pacienteId);
+      return {
+        ...alert,
+        pacienteNombre: patient ? patientFullName(patient) : `Paciente #${alert.pacienteId}`,
+        pacienteHabitacion: patient?.habitacion
+      };
+    });
   }
 
   private resolvePatientName(pacienteId: number, patients: Patient[]): string {

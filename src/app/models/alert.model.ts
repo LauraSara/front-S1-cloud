@@ -10,6 +10,7 @@ export interface Alert {
   estado: AlertStatus;
   fechaHora: string;
   pacienteNombre?: string;
+  pacienteHabitacion?: string;
 }
 
 export interface AlertFormData {

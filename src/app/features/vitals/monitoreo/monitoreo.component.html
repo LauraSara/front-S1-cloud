@@ -1,62 +1,109 @@
-<div class="page-header">
-  <h2 class="vg-page-title">Monitoreo en tiempo real</h2>
-  <p class="vg-page-subtitle">Signos vitales de pacientes críticos (actualización cada 5s)</p>
-</div>
+<div class="monitoreo-page">
+  <header class="vg-page-header">
+    <div>
+      <h2 class="vg-page-title">Monitoreo Central</h2>
+      <p class="vg-page-subtitle">
+        Visión general en tiempo real de {{ cards.length }} camas activas.
+        {{ alertsRequiringAttention }} alertas requieren atención.
+      </p>
+    </div>
 
-@if (loading) {
-  <div class="loading"><mat-spinner diameter="48"></mat-spinner></div>
-} @else if (cards.length === 0) {
-  <mat-card class="vg-card empty-card">
-    <mat-icon>monitor_heart</mat-icon>
-    <p>No hay pacientes en estado crítico u observación.</p>
-  </mat-card>
-} @else {
-  <div class="monitor-grid">
-    @for (card of cards; track card.patient.id) {
-      <mat-card
-        class="monitor-card"
-        [class.critical-pulse]="card.severity === 'CRITICO'"
-      >
-        <div class="card-header">
-          <div>
-            <h3>{{ patientName(card.patient) }}</h3>
-            <span class="room">Hab. {{ card.patient.habitacion }}</span>
-          </div>
-          @if (card.severity) {
-            <app-severity-badge [severity]="card.severity" />
-          }
-        </div>
-
-        @if (card.vital) {
-          <div class="vitals-row">
-            <div class="vital">
-              <mat-icon>favorite</mat-icon>
-              <span class="val">{{ card.vital.frecuenciaCardiaca }}</span>
-              <span class="unit">lpm</span>
-            </div>
-            <div class="vital">
-              <mat-icon>air</mat-icon>
-              <span class="val">{{ card.vital.saturacionOxigeno }}</span>
-              <span class="unit">% SpO₂</span>
-            </div>
-            <div class="vital">
-              <mat-icon>speed</mat-icon>
-              <span class="val">{{ card.vital.presionSistolica }}/{{ card.vital.presionDiastolica }}</span>
-              <span class="unit">mmHg</span>
-            </div>
-            <div class="vital">
-              <mat-icon>thermostat</mat-icon>
-              <span class="val">{{ card.vital.temperatura }}</span>
-              <span class="unit">°C</span>
-            </div>
-          </div>
-          <p class="timestamp">{{ card.vital.fechaHora | date:'dd/MM/yyyy HH:mm:ss' }}</p>
-        } @else {
-          <p class="no-data">Sin mediciones recientes</p>
+    <div class="header-actions">
+      <button mat-stroked-button type="button" [matMenuTriggerFor]="filterMenu" class="filter-btn">
+        <mat-icon>filter_list</mat-icon>
+        Filtrar
+        @if (severityFilter !== 'all') {
+          <span class="filter-badge">{{ filterLabel() }}</span>
         }
+      </button>
+      <mat-menu #filterMenu="matMenu">
+        <button mat-menu-item (click)="setFilter('all')">Todos</button>
+        <button mat-menu-item (click)="setFilter('CRITICO')">Críticos</button>
+        <button mat-menu-item (click)="setFilter('ADVERTENCIA')">Atención</button>
+        <button mat-menu-item (click)="setFilter('NORMAL')">Estables</button>
+      </mat-menu>
+    </div>
+  </header>
 
-        <a class="detail-link" [routerLink]="['/pacientes', card.patient.id]">Ver detalle</a>
-      </mat-card>
-    }
-  </div>
-}
+  @if (loading) {
+    <div class="loading">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else if (visibleCards.length === 0) {
+    <div class="empty-card vg-card">
+      <mat-icon>monitor_heart</mat-icon>
+      <p>No hay pacientes para mostrar con el filtro seleccionado.</p>
+    </div>
+  } @else {
+    <div class="monitor-grid">
+      @for (card of visibleCards; track card.patient.id) {
+        <article class="monitor-card" [class]="'monitor-card--' + cardStatus(card)">
+          <div class="monitor-card__header">
+            <div class="monitor-card__room">
+              <span class="room-title" [class.room-title--alert]="cardStatus(card) === 'critical'">
+                Habitación {{ card.roomLabel }}
+              </span>
+              @if (card.bedLabel) {
+                <span class="bed-badge">{{ card.bedLabel }}</span>
+              }
+            </div>
+
+            <div class="monitor-card__actions">
+              @if (statusLabel(card); as label) {
+                <span class="status-badge" [class]="'status-badge--' + cardStatus(card)">
+                  <mat-icon>{{ cardStatus(card) === 'critical' ? 'warning' : 'schedule' }}</mat-icon>
+                  {{ label }}
+                </span>
+              }
+              <a [routerLink]="['/pacientes', card.patient.id]" class="menu-btn" aria-label="Ver paciente">
+                <mat-icon>more_vert</mat-icon>
+              </a>
+            </div>
+          </div>
+
+          <h3 class="monitor-card__patient">{{ patientName(card.patient) }}</h3>
+
+          @if (card.vital) {
+            <div class="vitals-grid">
+              <div class="vital-block" [class]="'vital-block--' + fcLevel(card)">
+                <div class="vital-block__head">
+                  <span class="vital-block__label">FC</span>
+                  <mat-icon>favorite</mat-icon>
+                </div>
+                <div class="vital-block__value">
+                  {{ card.vital.frecuenciaCardiaca }}
+                  <span class="vital-block__unit">lpm</span>
+                </div>
+                <svg class="sparkline" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true">
+                  <path [attr.d]="buildSparklinePoints(card.fcTrend, 120, 28)" />
+                </svg>
+              </div>
+
+              <div class="vital-block" [class]="'vital-block--' + spo2Level(card)">
+                <div class="vital-block__head">
+                  <span class="vital-block__label">SpO2</span>
+                  <mat-icon>air</mat-icon>
+                </div>
+                <div class="vital-block__value">
+                  {{ card.vital.saturacionOxigeno }}
+                  <span class="vital-block__unit">%</span>
+                </div>
+                <svg class="sparkline" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true">
+                  <path [attr.d]="buildSparklinePoints(card.spo2Trend, 120, 28)" />
+                </svg>
+              </div>
+            </div>
+          } @else {
+            <p class="no-data">Sin mediciones recientes</p>
+          }
+
+          @if (cardStatus(card) === 'critical') {
+            <a class="alert-action" [routerLink]="['/alertas']">Atender alerta</a>
+          } @else {
+            <a class="detail-link" [routerLink]="['/pacientes', card.patient.id]">Ver detalle</a>
+          }
+        </article>
+      }
+    </div>
+  }
+</div>

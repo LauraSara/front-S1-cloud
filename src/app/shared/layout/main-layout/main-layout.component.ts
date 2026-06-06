@@ -2,9 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatToolbarModule } from '@angular/material/toolbar';
 import { MsalService } from '@azure/msal-angular';
 
 interface NavItem {
@@ -21,8 +19,6 @@ interface NavItem {
     RouterLink,
     RouterLinkActive,
     MatSidenavModule,
-    MatToolbarModule,
-    MatListModule,
     MatIconModule,
     MatButtonModule
   ],
@@ -33,15 +29,26 @@ export class MainLayoutComponent {
   private readonly msalService = inject(MsalService);
 
   readonly navItems: NavItem[] = [
-    { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
-    { label: 'Pacientes', route: '/pacientes', icon: 'personal_injury' },
-    { label: 'Monitoreo', route: '/monitoreo', icon: 'monitor_heart' },
-    { label: 'Alertas', route: '/alertas', icon: 'notification_important' }
+    { label: 'Dashboard', route: '/dashboard', icon: 'space_dashboard' },
+    { label: 'Pacientes', route: '/pacientes', icon: 'groups' },
+    { label: 'Monitoreo', route: '/monitoreo', icon: 'monitoring' },
+    { label: 'Alertas', route: '/alertas', icon: 'notifications' }
   ];
 
   get userName(): string {
     const account = this.msalService.instance.getActiveAccount();
     return account?.name || account?.username || 'Usuario';
+  }
+
+  get userInitials(): string {
+    const parts = this.userName.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return 'U';
+    }
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
   }
 
   logout(): void {

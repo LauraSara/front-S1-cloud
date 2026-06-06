@@ -6,8 +6,8 @@ import {
   InteractionType,
   NavigationClient,
   WrapperSKU
-} from "./chunk-ADKTVJXV.js";
-import "./chunk-IBGPF7Q5.js";
+} from "./chunk-TVDXA5XS.js";
+import "./chunk-SWLIRMOB.js";
 import {
   Router
 } from "./chunk-7H7FB7MI.js";
@@ -37,8 +37,8 @@ import {
   ɵɵdirectiveInject,
   ɵɵinject
 } from "./chunk-GE3GGNOH.js";
-import "./chunk-WMWTRTCA.js";
 import "./chunk-QO67QQ3F.js";
+import "./chunk-WMWTRTCA.js";
 import {
   BehaviorSubject,
   EMPTY,

@@ -4,14 +4,16 @@
   --vg-success: #198754;
   --vg-warning: #ffc107;
   --vg-danger: #dc3545;
-  --vg-bg: #f4f7fb;
+  --vg-bg: #eef2f7;
   --vg-surface: #ffffff;
   --vg-text: #1a2b3c;
   --vg-text-muted: #6c757d;
-  --vg-sidebar-width: 260px;
-  --vg-header-height: 64px;
+  --vg-border: rgba(15, 39, 68, 0.08);
+  --vg-sidebar-width: 240px;
+  --vg-header-height: 56px;
+  --vg-header-bg: #0f2744;
   --vg-radius: 12px;
-  --vg-shadow: 0 4px 20px rgba(11, 94, 215, 0.08);
+  --vg-shadow: 0 1px 3px rgba(15, 39, 68, 0.06);
 }
 
 @mixin severity-badge($color) {

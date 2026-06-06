@@ -1,87 +1,213 @@
-<div class="page-header">
-  <div>
-    <h2 class="vg-page-title">Alertas médicas</h2>
-    <p class="vg-page-subtitle">Gestión y confirmación de alertas de signos vitales</p>
-  </div>
-  <button mat-flat-button color="primary" (click)="openCreate()">
-    <mat-icon>add</mat-icon>
-    Nueva alerta
-  </button>
-</div>
+<div class="alertas-page">
+  <header class="vg-page-header">
+    <div>
+      <h2 class="vg-page-title">Historial de Alertas</h2>
+      <p class="vg-page-subtitle">Análisis retrospectivo y registro de eventos críticos del sistema</p>
+    </div>
+    <button mat-flat-button class="primary-action" (click)="openCreate()">
+      <mat-icon>add</mat-icon>
+      Nueva alerta
+    </button>
+  </header>
 
-<div class="filters">
-  <mat-form-field appearance="outline">
-    <mat-label>Estado</mat-label>
-    <mat-select [formControl]="estadoControl">
-      <mat-option value="">Todas</mat-option>
-      <mat-option value="ACTIVA">Activas</mat-option>
-      <mat-option value="ATENDIDA">Atendidas</mat-option>
-    </mat-select>
-  </mat-form-field>
-</div>
+  <section class="vg-filters-panel">
+    <h3 class="vg-filters-panel__title">
+      <mat-icon>tune</mat-icon>
+      Filtros de Análisis
+    </h3>
 
-@if (loading) {
-  <div class="loading"><mat-spinner diameter="48"></mat-spinner></div>
-} @else {
-  <div class="table-container vg-card">
-    <table mat-table [dataSource]="alerts">
-      <ng-container matColumnDef="paciente">
-        <th mat-header-cell *matHeaderCellDef>Paciente</th>
-        <td mat-cell *matCellDef="let row">{{ row.pacienteNombre }}</td>
-      </ng-container>
+    <div class="vg-filters-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha inicio</mat-label>
+        <input matInput type="date" [formControl]="fechaInicioControl" />
+      </mat-form-field>
 
-      <ng-container matColumnDef="tipo">
-        <th mat-header-cell *matHeaderCellDef>Tipo</th>
-        <td mat-cell *matCellDef="let row">{{ row.tipo }}</td>
-      </ng-container>
+      <mat-form-field appearance="outline">
+        <mat-label>Fecha fin</mat-label>
+        <input matInput type="date" [formControl]="fechaFinControl" />
+      </mat-form-field>
 
-      <ng-container matColumnDef="descripcion">
-        <th mat-header-cell *matHeaderCellDef>Descripción</th>
-        <td mat-cell *matCellDef="let row">{{ row.descripcion }}</td>
-      </ng-container>
+      <mat-form-field appearance="outline">
+        <mat-label>Severidad</mat-label>
+        <mat-select [formControl]="severidadControl">
+          <mat-option value="">Todas las severidades</mat-option>
+          <mat-option value="ALTA">Crítica</mat-option>
+          <mat-option value="MEDIA">Advertencia</mat-option>
+          <mat-option value="BAJA">Informativa</mat-option>
+        </mat-select>
+      </mat-form-field>
 
-      <ng-container matColumnDef="severidad">
-        <th mat-header-cell *matHeaderCellDef>Severidad</th>
-        <td mat-cell *matCellDef="let row">
-          <app-severity-badge [severity]="row.severidad" />
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="estado">
-        <th mat-header-cell *matHeaderCellDef>Estado</th>
-        <td mat-cell *matCellDef="let row">
-          <span class="estado" [class.activa]="row.estado === 'ACTIVA'">{{ row.estado }}</span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="fecha">
-        <th mat-header-cell *matHeaderCellDef>Fecha</th>
-        <td mat-cell *matCellDef="let row">{{ row.fechaHora | date:'dd/MM/yyyy HH:mm' }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="acciones">
-        <th mat-header-cell *matHeaderCellDef>Acciones</th>
-        <td mat-cell *matCellDef="let row" class="actions-cell">
-          @if (row.estado === 'ACTIVA') {
-            <button mat-icon-button color="primary" (click)="openAcknowledge(row)" aria-label="Atender">
-              <mat-icon>check_circle</mat-icon>
-            </button>
+      <mat-form-field appearance="outline">
+        <mat-label>Tipo de alerta</mat-label>
+        <mat-select [formControl]="tipoControl">
+          <mat-option value="">Todos los tipos</mat-option>
+          @for (tipo of tipos; track tipo) {
+            <mat-option [value]="tipo">{{ tipo }}</mat-option>
           }
-          <button mat-icon-button (click)="openEdit(row)" aria-label="Editar">
-            <mat-icon>edit</mat-icon>
-          </button>
-          <button mat-icon-button color="warn" (click)="confirmDelete(row)" aria-label="Eliminar">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </td>
-      </ng-container>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </section>
 
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-    </table>
+  @if (loading) {
+    <div class="loading">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else {
+    <div class="vg-analytics-layout">
+      <div class="vg-summary-stack">
+        <article class="vg-summary-card vg-summary-card--critical">
+          <span class="vg-summary-card__label">Total alertas críticas</span>
+          <span class="vg-summary-card__value">{{ criticalCount }}</span>
+          <div class="vg-summary-card__icon"><mat-icon>warning</mat-icon></div>
+        </article>
 
-    @if (alerts.length === 0) {
-      <p class="empty">No hay alertas para mostrar.</p>
-    }
-  </div>
-}
+        <article class="vg-summary-card vg-summary-card--warning">
+          <span class="vg-summary-card__label">Alertas de advertencia</span>
+          <span class="vg-summary-card__value">{{ warningCount }}</span>
+          <div class="vg-summary-card__icon"><mat-icon>notifications</mat-icon></div>
+        </article>
+
+        <article class="vg-summary-card vg-summary-card--info">
+          <span class="vg-summary-card__label">Alertas informativas</span>
+          <span class="vg-summary-card__value">{{ infoCount }}</span>
+          <div class="vg-summary-card__icon"><mat-icon>info</mat-icon></div>
+        </article>
+      </div>
+
+      <section class="vg-chart-panel">
+        <h3 class="vg-chart-panel__title">Frecuencia por hora del día</h3>
+        <div class="vg-chart-panel__canvas">
+          <canvas baseChart [data]="chartData" [options]="chartOptions" type="line"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <section class="vg-table-panel">
+      <div class="vg-table-panel__header">
+        <h3 class="vg-table-panel__title">Registro detallado</h3>
+        <mat-form-field appearance="outline" class="vg-table-search">
+          <mat-label>Buscar ID o paciente</mat-label>
+          <input matInput [formControl]="searchControl" placeholder="Buscar ID o Paciente..." />
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <div class="vg-table-wrapper">
+        <table mat-table [dataSource]="paginatedAlerts" class="vg-stitch-table">
+          <ng-container matColumnDef="fecha">
+            <th mat-header-cell *matHeaderCellDef>Fecha / Hora</th>
+            <td mat-cell *matCellDef="let row">{{ formatAlertDateTime(row.fechaHora) }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="severidad">
+            <th mat-header-cell *matHeaderCellDef>Severidad</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="vg-severity-pill" [class]="severityClass(row.severidad)">
+                <span class="vg-severity-pill__dot"></span>
+                {{ severityLabel(row.severidad) }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="tipo">
+            <th mat-header-cell *matHeaderCellDef>Tipo de alerta</th>
+            <td mat-cell *matCellDef="let row">{{ row.tipo }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="paciente">
+            <th mat-header-cell *matHeaderCellDef>Paciente</th>
+            <td mat-cell *matCellDef="let row">{{ row.pacienteNombre || '—' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="habitacion">
+            <th mat-header-cell *matHeaderCellDef>Habitación</th>
+            <td mat-cell *matCellDef="let row">{{ row.pacienteHabitacion || '—' }}</td>
+          </ng-container>
+
+          <ng-container matColumnDef="estado">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let row">
+              <span
+                class="estado-badge"
+                [class.estado-badge--activa]="row.estado === 'ACTIVA'"
+                [class.estado-badge--critica]="row.estado === 'ACTIVA' && row.severidad === 'ALTA'"
+              >
+                {{ row.estado === 'ACTIVA' ? 'Activa' : 'Atendida' }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="acciones">
+            <th mat-header-cell *matHeaderCellDef aria-label="Acciones"></th>
+            <td mat-cell *matCellDef="let row" class="actions-cell">
+              @if (row.estado === 'ACTIVA') {
+                <button mat-icon-button color="primary" (click)="openAcknowledge(row)" aria-label="Atender">
+                  <mat-icon>check_circle</mat-icon>
+                </button>
+              }
+              <button mat-icon-button (click)="openEdit(row)" aria-label="Editar">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="confirmDelete(row)" aria-label="Eliminar">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+
+        @if (filteredAlerts.length === 0) {
+          <p class="empty">No hay alertas para mostrar.</p>
+        }
+      </div>
+
+      @if (filteredAlerts.length > 0) {
+        <div class="vg-table-footer">
+          <span class="vg-table-footer__info">
+            Mostrando {{ rangeStart }}-{{ rangeEnd }} de {{ filteredAlerts.length }} registros
+          </span>
+
+          <div class="vg-pagination">
+            <button
+              type="button"
+              class="vg-pagination__btn"
+              (click)="goToPage(pageIndex - 1)"
+              [disabled]="pageIndex === 0"
+              aria-label="Página anterior"
+            >
+              ‹
+            </button>
+
+            @for (item of paginationItems; track item) {
+              @if (item === 'ellipsis') {
+                <span class="vg-pagination__ellipsis">…</span>
+              } @else {
+                <button
+                  type="button"
+                  class="vg-pagination__btn"
+                  [class.is-active]="pageIndex + 1 === item"
+                  (click)="goToPage(item - 1)"
+                >
+                  {{ item }}
+                </button>
+              }
+            }
+
+            <button
+              type="button"
+              class="vg-pagination__btn"
+              (click)="goToPage(pageIndex + 1)"
+              [disabled]="pageIndex >= totalPages - 1"
+              aria-label="Página siguiente"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+      }
+    </section>
+  }
+</div>

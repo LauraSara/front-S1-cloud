@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { DatePipe } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -10,7 +11,6 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
-import { debounceTime, startWith } from 'rxjs/operators';
 import { Patient, PatientStatus, patientFullName } from '../../../models/patient.model';
 import { PatientService } from '../../../services/patient.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -20,6 +20,7 @@ import { PatientFormDialogComponent } from '../patient-form-dialog/patient-form-
   selector: 'app-pacientes-list',
   standalone: true,
   imports: [
+    DatePipe,
     RouterLink,
     ReactiveFormsModule,
     MatTableModule,
@@ -38,37 +39,55 @@ export class PacientesListComponent implements OnInit {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
 
-  patients: Patient[] = [];
+  allPatients: Patient[] = [];
   filteredPatients: Patient[] = [];
+  paginatedPatients: Patient[] = [];
   loading = true;
+  pageIndex = 0;
+  readonly pageSize = 4;
 
-  readonly searchControl = new FormControl('');
+  readonly searchControl = new FormControl('', { nonNullable: true });
   readonly estadoControl = new FormControl<PatientStatus | ''>('');
-  readonly displayedColumns = ['nombre', 'rut', 'habitacion', 'estado', 'acciones'];
+  readonly habitacionControl = new FormControl('');
+
+  readonly displayedColumns = [
+    'indicator',
+    'id',
+    'paciente',
+    'edad',
+    'ubicacion',
+    'estado',
+    'actualizacion',
+    'accion'
+  ];
 
   ngOnInit(): void {
     this.loadPatients();
+  }
 
-    this.searchControl.valueChanges.pipe(debounceTime(300), startWith('')).subscribe(() => {
-      this.applySearchFilter();
-    });
+  get salas(): string[] {
+    return [...new Set(this.allPatients.map((patient) => patient.habitacion))].sort();
+  }
 
-    this.estadoControl.valueChanges.pipe(startWith('')).subscribe(() => {
-      this.loadPatients();
-    });
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredPatients.length / this.pageSize));
+  }
+
+  get rangeStart(): number {
+    return this.filteredPatients.length === 0 ? 0 : this.pageIndex * this.pageSize + 1;
+  }
+
+  get rangeEnd(): number {
+    return Math.min((this.pageIndex + 1) * this.pageSize, this.filteredPatients.length);
   }
 
   loadPatients(): void {
     this.loading = true;
-    const estado = this.estadoControl.value;
-    const request$ = estado
-      ? this.patientService.getByEstado(estado)
-      : this.patientService.getAll();
 
-    request$.subscribe({
+    this.patientService.getAll().subscribe({
       next: (data) => {
-        this.patients = data;
-        this.applySearchFilter();
+        this.allPatients = data;
+        this.applyFilters();
         this.loading = false;
       },
       error: () => {
@@ -78,23 +97,73 @@ export class PacientesListComponent implements OnInit {
     });
   }
 
+  applyFilters(): void {
+    const search = this.searchControl.value.trim().toLowerCase();
+    const estado = this.estadoControl.value;
+    const habitacion = this.habitacionControl.value;
+
+    this.filteredPatients = this.allPatients.filter((patient) => {
+      const fullName = patientFullName(patient).toLowerCase();
+      const patientCode = this.patientCode(patient).toLowerCase();
+      const matchesSearch =
+        !search ||
+        fullName.includes(search) ||
+        patient.rut.toLowerCase().includes(search) ||
+        patient.habitacion.toLowerCase().includes(search) ||
+        patientCode.includes(search);
+
+      const matchesEstado = !estado || patient.estado === estado;
+      const matchesHabitacion = !habitacion || patient.habitacion === habitacion;
+
+      return matchesSearch && matchesEstado && matchesHabitacion;
+    });
+
+    this.pageIndex = 0;
+    this.updatePagination();
+  }
+
+  updatePagination(): void {
+    const start = this.pageIndex * this.pageSize;
+    this.paginatedPatients = this.filteredPatients.slice(start, start + this.pageSize);
+  }
+
+  goToPage(index: number): void {
+    if (index < 0 || index >= this.totalPages) {
+      return;
+    }
+    this.pageIndex = index;
+    this.updatePagination();
+  }
+
   fullName(patient: Patient): string {
     return patientFullName(patient);
   }
 
-  applySearchFilter(): void {
-    const search = (this.searchControl.value || '').toLowerCase();
+  patientCode(patient: Patient): string {
+    return `PT-${String(patient.id).padStart(4, '0')}`;
+  }
 
-    this.filteredPatients = this.patients.filter((p) => {
-      const fullName = patientFullName(p).toLowerCase();
-      return (
-        fullName.includes(search) ||
-        p.nombre.toLowerCase().includes(search) ||
-        p.apellido.toLowerCase().includes(search) ||
-        p.rut.toLowerCase().includes(search) ||
-        p.habitacion.toLowerCase().includes(search)
-      );
-    });
+  initials(patient: Patient): string {
+    const first = patient.nombre.trim()[0] ?? '';
+    const last = patient.apellido.trim()[0] ?? '';
+    return `${first}${last}`.toUpperCase() || 'P';
+  }
+
+  estadoLabel(estado: PatientStatus): string {
+    const labels: Record<PatientStatus, string> = {
+      CRITICO: 'Crítico',
+      ESTABLE: 'Estable',
+      OBSERVACION: 'Observación'
+    };
+    return labels[estado];
+  }
+
+  estadoClass(estado: PatientStatus): string {
+    return `estado-badge estado-badge--${estado.toLowerCase()}`;
+  }
+
+  rowClass(estado: PatientStatus): string {
+    return `patient-row patient-row--${estado.toLowerCase()}`;
   }
 
   openCreateDialog(): void {

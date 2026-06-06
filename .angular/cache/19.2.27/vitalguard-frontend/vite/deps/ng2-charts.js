@@ -15,8 +15,8 @@ import {
   ɵɵdefineInjectable,
   ɵɵdirectiveInject
 } from "./chunk-GE3GGNOH.js";
-import "./chunk-WMWTRTCA.js";
 import "./chunk-QO67QQ3F.js";
+import "./chunk-WMWTRTCA.js";
 import {
   BehaviorSubject,
   distinctUntilChanged

@@ -1,4 +1,5 @@
 @use 'styles/theme';
+@use 'styles/stitch-ui';
 @use '@angular/material' as mat;
 
 @include mat.core();
