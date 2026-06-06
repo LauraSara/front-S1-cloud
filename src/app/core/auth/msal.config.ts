@@ -19,7 +19,6 @@ export function msalInstanceFactory(): IPublicClientApplication {
     auth: {
       clientId: environment.azure.clientId,
       authority: environment.azure.authority,
-      knownAuthorities: ['duoc2026cn1m.b2clogin.com'],
       redirectUri: environment.azure.redirectUri,
       postLogoutRedirectUri: environment.azure.redirectUri,
     },
@@ -39,8 +38,9 @@ export function msalGuardConfigFactory(): MsalGuardConfiguration {
   return {
     interactionType: InteractionType.Redirect,
     authRequest: {
-      scopes: environment.azure.scopes,
+      scopes: [...environment.azure.scopes],
     },
+    loginFailedRoute: '/login',
   };
 }
 

@@ -1,8 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MsalBroadcastService, MsalService } from '@azure/msal-angular';
 import { InteractionStatus } from '@azure/msal-browser';
-import { filter, take } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { filter, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -10,9 +11,10 @@ import { filter, take } from 'rxjs/operators';
   imports: [RouterOutlet],
   template: '<router-outlet />'
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   private readonly msalService = inject(MsalService);
   private readonly broadcastService = inject(MsalBroadcastService);
+  private readonly destroying$ = new Subject<void>();
 
   ngOnInit(): void {
     this.msalService.handleRedirectObservable().subscribe();
@@ -20,13 +22,24 @@ export class AppComponent implements OnInit {
     this.broadcastService.inProgress$
       .pipe(
         filter((status) => status === InteractionStatus.None),
-        take(1)
+        takeUntil(this.destroying$)
       )
       .subscribe(() => {
-        const accounts = this.msalService.instance.getAllAccounts();
-        if (accounts.length > 0) {
-          this.msalService.instance.setActiveAccount(accounts[0]);
-        }
+        this.checkAndSetActiveAccount();
       });
+  }
+
+  private checkAndSetActiveAccount(): void {
+    const activeAccount = this.msalService.instance.getActiveAccount();
+    const accounts = this.msalService.instance.getAllAccounts();
+
+    if (!activeAccount && accounts.length > 0) {
+      this.msalService.instance.setActiveAccount(accounts[0]);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroying$.next();
+    this.destroying$.complete();
   }
 }

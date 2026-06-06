@@ -3,10 +3,14 @@ import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MsalBroadcastService, MsalService } from '@azure/msal-angular';
-import { InteractionStatus } from '@azure/msal-browser';
+import {
+  MSAL_GUARD_CONFIG,
+  MsalBroadcastService,
+  MsalGuardConfiguration,
+  MsalService,
+} from '@azure/msal-angular';
+import { InteractionStatus, RedirectRequest } from '@azure/msal-browser';
 import { filter, take } from 'rxjs/operators';
-import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -19,6 +23,7 @@ export class LoginComponent implements OnInit {
   private readonly msalService = inject(MsalService);
   private readonly broadcastService = inject(MsalBroadcastService);
   private readonly router = inject(Router);
+  private readonly msalGuardConfig = inject<MsalGuardConfiguration>(MSAL_GUARD_CONFIG);
 
   ngOnInit(): void {
     this.broadcastService.inProgress$
@@ -36,8 +41,13 @@ export class LoginComponent implements OnInit {
   }
 
   login(): void {
-    this.msalService.loginRedirect({
-      scopes: environment.azure.scopes
-    });
+    if (this.msalGuardConfig.authRequest) {
+      this.msalService.loginRedirect({
+        ...this.msalGuardConfig.authRequest
+      } as RedirectRequest);
+      return;
+    }
+
+    this.msalService.loginRedirect();
   }
 }
