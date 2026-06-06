@@ -36,7 +36,7 @@ export class AlertFormDialogComponent implements OnInit {
   private readonly alertService = inject(AlertService);
   private readonly patientService = inject(PatientService);
   private readonly snackBar = inject(MatSnackBar);
-  readonly data = inject<AlertFormDialogData>(MAT_DIALOG_DATA);
+  readonly data = inject<AlertFormDialogData | null>(MAT_DIALOG_DATA) ?? {};
   readonly dialogRef = inject(MatDialogRef<AlertFormDialogComponent>);
 
   patients: Patient[] = [];

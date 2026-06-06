@@ -31,7 +31,7 @@ export class PatientFormDialogComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly patientService = inject(PatientService);
   private readonly snackBar = inject(MatSnackBar);
-  readonly data = inject<PatientFormDialogData>(MAT_DIALOG_DATA);
+  readonly data = inject<PatientFormDialogData | null>(MAT_DIALOG_DATA) ?? {};
   readonly dialogRef = inject(MatDialogRef<PatientFormDialogComponent>);
 
   readonly estados: PatientStatus[] = ['ESTABLE', 'CRITICO', 'OBSERVACION'];
