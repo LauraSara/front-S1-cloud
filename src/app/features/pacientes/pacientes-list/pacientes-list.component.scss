@@ -1,0 +1,60 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+
+  button mat-icon {
+    margin-right: 0.25rem;
+  }
+}
+
+.filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+
+  mat-form-field {
+    flex: 1;
+    min-width: 200px;
+  }
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+}
+
+.estado-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &.estable { background: rgba(25, 135, 84, 0.12); color: #198754; }
+  &.critico { background: rgba(220, 53, 69, 0.12); color: #dc3545; }
+  &.observacion { background: rgba(255, 193, 7, 0.15); color: #b8860b; }
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 4rem;
+}
+
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--vg-text-muted);
+}
+
+.patient-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 400px;
+}

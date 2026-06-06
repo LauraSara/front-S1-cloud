@@ -1,0 +1,62 @@
+<div class="page-header">
+  <h2 class="vg-page-title">Monitoreo en tiempo real</h2>
+  <p class="vg-page-subtitle">Signos vitales de pacientes críticos (actualización cada 5s)</p>
+</div>
+
+@if (loading) {
+  <div class="loading"><mat-spinner diameter="48"></mat-spinner></div>
+} @else if (cards.length === 0) {
+  <mat-card class="vg-card empty-card">
+    <mat-icon>monitor_heart</mat-icon>
+    <p>No hay pacientes en estado crítico u observación.</p>
+  </mat-card>
+} @else {
+  <div class="monitor-grid">
+    @for (card of cards; track card.patient.id) {
+      <mat-card
+        class="monitor-card"
+        [class.critical-pulse]="card.vital?.severidad === 'CRITICO'"
+      >
+        <div class="card-header">
+          <div>
+            <h3>{{ card.patient.nombre }}</h3>
+            <span class="room">Hab. {{ card.patient.habitacion }}</span>
+          </div>
+          @if (card.vital) {
+            <app-severity-badge [severity]="card.vital.severidad" />
+          }
+        </div>
+
+        @if (card.vital) {
+          <div class="vitals-row">
+            <div class="vital">
+              <mat-icon>favorite</mat-icon>
+              <span class="val">{{ card.vital.frecuenciaCardiaca }}</span>
+              <span class="unit">lpm</span>
+            </div>
+            <div class="vital">
+              <mat-icon>air</mat-icon>
+              <span class="val">{{ card.vital.saturacionOxigeno }}</span>
+              <span class="unit">% SpO₂</span>
+            </div>
+            <div class="vital">
+              <mat-icon>speed</mat-icon>
+              <span class="val">{{ card.vital.presionSistolica }}/{{ card.vital.presionDiastolica }}</span>
+              <span class="unit">mmHg</span>
+            </div>
+            <div class="vital">
+              <mat-icon>thermostat</mat-icon>
+              <span class="val">{{ card.vital.temperatura }}</span>
+              <span class="unit">°C</span>
+            </div>
+          </div>
+          <p class="timestamp">{{ card.vital.fechaRegistro | date:'dd/MM/yyyy HH:mm:ss' }}</p>
+        } @else {
+          <p class="no-data">Sin mediciones recientes</p>
+        }
+
+        <a class="detail-link" [routerLink]="['/pacientes', card.patient.id]">Ver detalle</a>
+      </mat-card>
+    }
+  </div>
+}

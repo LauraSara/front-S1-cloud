@@ -1,0 +1,68 @@
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-radius: var(--vg-radius);
+
+  mat-icon {
+    font-size: 2.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .stat-value {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .stat-label {
+    color: var(--vg-text-muted);
+    font-size: 0.875rem;
+  }
+
+  &.critical mat-icon { color: var(--vg-danger); }
+  &.alert mat-icon { color: var(--vg-warning); }
+  &.vitals mat-icon { color: var(--vg-primary); }
+}
+
+.alerts-table h3 {
+  margin: 0 0 1rem;
+}
+
+.empty {
+  color: var(--vg-text-muted);
+  text-align: center;
+  padding: 2rem;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 4rem;
+}
+
+.error-card {
+  text-align: center;
+  padding: 3rem;
+
+  mat-icon {
+    font-size: 3rem;
+    width: 3rem;
+    height: 3rem;
+    color: var(--vg-text-muted);
+  }
+}
+
+table {
+  width: 100%;
+}

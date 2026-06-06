@@ -1,0 +1,11 @@
+services:
+  vitalguard-frontend:
+    build:
+      context: .
+      platforms:
+        - linux/amd64
+    platform: linux/amd64
+    container_name: vitalguard-frontend
+    ports:
+      - "4200:80"
+    restart: unless-stopped

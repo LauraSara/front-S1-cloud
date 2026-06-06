@@ -1,0 +1,71 @@
+<h2 mat-dialog-title>{{ isEdit ? 'Editar paciente' : 'Nuevo paciente' }}</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" class="patient-form">
+    <mat-form-field appearance="outline">
+      <mat-label>Nombre completo</mat-label>
+      <input matInput formControlName="nombre" />
+      @if (form.controls.nombre.hasError('required')) {
+        <mat-error>El nombre es obligatorio.</mat-error>
+      }
+      @if (form.controls.nombre.hasError('minlength')) {
+        <mat-error>Mínimo 3 caracteres.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>RUT</mat-label>
+      <input matInput formControlName="rut" placeholder="12.345.678-9" />
+      @if (form.controls.rut.hasError('required')) {
+        <mat-error>El RUT es obligatorio.</mat-error>
+      }
+      @if (form.controls.rut.hasError('rutFormat')) {
+        <mat-error>Formato de RUT inválido.</mat-error>
+      }
+      @if (form.controls.rut.hasError('rutInvalid')) {
+        <mat-error>Dígito verificador incorrecto.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Habitación</mat-label>
+      <input matInput formControlName="habitacion" placeholder="UCI-101" />
+      @if (form.controls.habitacion.hasError('required')) {
+        <mat-error>La habitación es obligatoria.</mat-error>
+      }
+      @if (form.controls.habitacion.hasError('pattern')) {
+        <mat-error>Formato inválido (ej: UCI101 o 101).</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Diagnóstico</mat-label>
+      <textarea matInput formControlName="diagnostico" rows="3"></textarea>
+      @if (form.controls.diagnostico.hasError('required')) {
+        <mat-error>El diagnóstico es obligatorio.</mat-error>
+      }
+      @if (form.controls.diagnostico.hasError('minlength')) {
+        <mat-error>Mínimo 5 caracteres.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Estado</mat-label>
+      <mat-select formControlName="estado">
+        @for (estado of estados; track estado) {
+          <mat-option [value]="estado">{{ estado }}</mat-option>
+        }
+      </mat-select>
+      @if (form.controls.estado.hasError('required')) {
+        <mat-error>El estado es obligatorio.</mat-error>
+      }
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancelar</button>
+  <button mat-flat-button color="primary" [disabled]="saving" (click)="save()">
+    {{ isEdit ? 'Actualizar' : 'Crear' }}
+  </button>
+</mat-dialog-actions>

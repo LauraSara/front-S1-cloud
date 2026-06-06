@@ -1,0 +1,65 @@
+<button mat-button routerLink="/pacientes">
+  <mat-icon>arrow_back</mat-icon>
+  Volver
+</button>
+
+@if (loading) {
+  <div class="loading"><mat-spinner diameter="48"></mat-spinner></div>
+} @else if (patient) {
+  <div class="detail-header">
+    <div>
+      <h2 class="vg-page-title">{{ patient.nombre }}</h2>
+      <p class="vg-page-subtitle">
+        RUT: {{ patient.rut }} · Habitación: {{ patient.habitacion }} · {{ patient.estado }}
+      </p>
+    </div>
+    <button mat-flat-button color="primary" (click)="openVitalForm()">
+      <mat-icon>monitor_heart</mat-icon>
+      Registrar signos vitales
+    </button>
+  </div>
+
+  <div class="detail-grid">
+    <mat-card class="vg-card">
+      <h3>Diagnóstico</h3>
+      <p>{{ patient.diagnostico }}</p>
+    </mat-card>
+
+    @if (latestVital) {
+      <mat-card class="vg-card">
+        <h3>Última medición</h3>
+        <div class="vitals-grid">
+          <div class="vital-item">
+            <span class="label">FC</span>
+            <span class="value">{{ latestVital.frecuenciaCardiaca }} lpm</span>
+          </div>
+          <div class="vital-item">
+            <span class="label">SpO₂</span>
+            <span class="value">{{ latestVital.saturacionOxigeno }}%</span>
+          </div>
+          <div class="vital-item">
+            <span class="label">PA</span>
+            <span class="value">{{ latestVital.presionSistolica }}/{{ latestVital.presionDiastolica }}</span>
+          </div>
+          <div class="vital-item">
+            <span class="label">Temp</span>
+            <span class="value">{{ latestVital.temperatura }} °C</span>
+          </div>
+        </div>
+        <app-severity-badge [severity]="latestVital.severidad" />
+        <p class="fecha">{{ latestVital.fechaRegistro | date:'dd/MM/yyyy HH:mm' }}</p>
+      </mat-card>
+    }
+  </div>
+
+  <mat-card class="vg-card chart-card">
+    <h3>Tendencia de signos vitales</h3>
+    @if (vitalsHistory.length === 0) {
+      <p class="empty">Sin historial de mediciones.</p>
+    } @else {
+      <div class="chart-container">
+        <canvas baseChart [data]="chartData" [options]="chartOptions" type="line"></canvas>
+      </div>
+    }
+  </mat-card>
+}
