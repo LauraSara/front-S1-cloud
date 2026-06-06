@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { debounceTime, startWith } from 'rxjs/operators';
-import { Patient, PatientStatus } from '../../../models/patient.model';
+import { Patient, PatientStatus, patientFullName } from '../../../models/patient.model';
 import { PatientService } from '../../../services/patient.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PatientFormDialogComponent } from '../patient-form-dialog/patient-form-dialog.component';
@@ -50,20 +50,25 @@ export class PacientesListComponent implements OnInit {
     this.loadPatients();
 
     this.searchControl.valueChanges.pipe(debounceTime(300), startWith('')).subscribe(() => {
-      this.applyFilters();
+      this.applySearchFilter();
     });
 
     this.estadoControl.valueChanges.pipe(startWith('')).subscribe(() => {
-      this.applyFilters();
+      this.loadPatients();
     });
   }
 
   loadPatients(): void {
     this.loading = true;
-    this.patientService.getAll().subscribe({
+    const estado = this.estadoControl.value;
+    const request$ = estado
+      ? this.patientService.getByEstado(estado)
+      : this.patientService.getAll();
+
+    request$.subscribe({
       next: (data) => {
         this.patients = data;
-        this.applyFilters();
+        this.applySearchFilter();
         this.loading = false;
       },
       error: () => {
@@ -73,17 +78,22 @@ export class PacientesListComponent implements OnInit {
     });
   }
 
-  applyFilters(): void {
+  fullName(patient: Patient): string {
+    return patientFullName(patient);
+  }
+
+  applySearchFilter(): void {
     const search = (this.searchControl.value || '').toLowerCase();
-    const estado = this.estadoControl.value;
 
     this.filteredPatients = this.patients.filter((p) => {
-      const matchesSearch =
+      const fullName = patientFullName(p).toLowerCase();
+      return (
+        fullName.includes(search) ||
         p.nombre.toLowerCase().includes(search) ||
+        p.apellido.toLowerCase().includes(search) ||
         p.rut.toLowerCase().includes(search) ||
-        p.habitacion.toLowerCase().includes(search);
-      const matchesEstado = !estado || p.estado === estado;
-      return matchesSearch && matchesEstado;
+        p.habitacion.toLowerCase().includes(search)
+      );
     });
   }
 
@@ -108,7 +118,7 @@ export class PacientesListComponent implements OnInit {
     const ref = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Eliminar paciente',
-        message: `¿Está seguro de eliminar a ${patient.nombre}?`,
+        message: `¿Está seguro de eliminar a ${patientFullName(patient)}?`,
         confirmText: 'Eliminar'
       }
     });

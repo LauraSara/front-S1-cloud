@@ -12,8 +12,10 @@ import { MatTableModule } from '@angular/material/table';
 import { startWith } from 'rxjs/operators';
 import { Alert, AlertStatus } from '../../../models/alert.model';
 import { AlertService } from '../../../services/alert.service';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { SeverityBadgeComponent } from '../../../shared/components/severity-badge/severity-badge.component';
 import { AlertAcknowledgeDialogComponent } from '../alert-acknowledge-dialog/alert-acknowledge-dialog.component';
+import { AlertFormDialogComponent } from '../alert-form-dialog/alert-form-dialog.component';
 
 @Component({
   selector: 'app-alertas-list',
@@ -38,26 +40,29 @@ export class AlertasListComponent implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
 
   alerts: Alert[] = [];
-  filteredAlerts: Alert[] = [];
   loading = true;
 
   readonly estadoControl = new FormControl<AlertStatus | ''>('');
-  readonly displayedColumns = ['paciente', 'tipo', 'mensaje', 'severidad', 'estado', 'fecha', 'acciones'];
+  readonly displayedColumns = ['paciente', 'tipo', 'descripcion', 'severidad', 'estado', 'fecha', 'acciones'];
 
   ngOnInit(): void {
     this.loadAlerts();
 
     this.estadoControl.valueChanges.pipe(startWith('')).subscribe(() => {
-      this.applyFilter();
+      this.loadAlerts();
     });
   }
 
   loadAlerts(): void {
     this.loading = true;
-    this.alertService.getAll().subscribe({
+    const estado = this.estadoControl.value;
+    const request$ = estado
+      ? this.alertService.getByEstado(estado)
+      : this.alertService.getAll();
+
+    request$.subscribe({
       next: (data) => {
         this.alerts = data;
-        this.applyFilter();
         this.loading = false;
       },
       error: () => {
@@ -67,21 +72,62 @@ export class AlertasListComponent implements OnInit {
     });
   }
 
-  applyFilter(): void {
-    const estado = this.estadoControl.value;
-    this.filteredAlerts = estado
-      ? this.alerts.filter((a) => a.estado === estado)
-      : [...this.alerts];
+  openCreate(): void {
+    const ref = this.dialog.open(AlertFormDialogComponent, { width: '500px' });
+    ref.afterClosed().subscribe((result) => {
+      if (result) this.loadAlerts();
+    });
+  }
+
+  openEdit(alert: Alert): void {
+    const ref = this.dialog.open(AlertFormDialogComponent, {
+      width: '500px',
+      data: { alertId: alert.id }
+    });
+    ref.afterClosed().subscribe((result) => {
+      if (result) this.loadAlerts();
+    });
   }
 
   openAcknowledge(alert: Alert): void {
-    const ref = this.dialog.open(AlertAcknowledgeDialogComponent, {
-      width: '500px',
-      data: alert
+    this.alertService.getById(alert.id).subscribe({
+      next: (freshAlert) => {
+        const ref = this.dialog.open(AlertAcknowledgeDialogComponent, {
+          width: '500px',
+          data: freshAlert
+        });
+
+        ref.afterClosed().subscribe((result) => {
+          if (result) this.loadAlerts();
+        });
+      },
+      error: () => {
+        this.snackBar.open('Error al cargar la alerta.', 'Cerrar', { duration: 5000 });
+      }
+    });
+  }
+
+  confirmDelete(alert: Alert): void {
+    const ref = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Eliminar alerta',
+        message: `¿Está seguro de eliminar la alerta "${alert.tipo}"?`,
+        confirmText: 'Eliminar'
+      }
     });
 
-    ref.afterClosed().subscribe((result) => {
-      if (result) this.loadAlerts();
+    ref.afterClosed().subscribe((confirmed) => {
+      if (confirmed) {
+        this.alertService.delete(alert.id).subscribe({
+          next: () => {
+            this.snackBar.open('Alerta eliminada.', 'Cerrar', { duration: 3000 });
+            this.loadAlerts();
+          },
+          error: () => {
+            this.snackBar.open('Error al eliminar la alerta.', 'Cerrar', { duration: 5000 });
+          }
+        });
+      }
     });
   }
 }

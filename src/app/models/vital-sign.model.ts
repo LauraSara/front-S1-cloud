@@ -1,4 +1,4 @@
-export type Severity = 'NORMAL' | 'ADVERTENCIA' | 'CRITICO';
+export type ClinicalSeverity = 'NORMAL' | 'ADVERTENCIA' | 'CRITICO';
 
 export interface VitalSign {
   id: number;
@@ -8,8 +8,7 @@ export interface VitalSign {
   presionSistolica: number;
   presionDiastolica: number;
   temperatura: number;
-  fechaRegistro: string;
-  severidad: Severity;
+  fechaHora: string;
 }
 
 export interface VitalSignFormData {

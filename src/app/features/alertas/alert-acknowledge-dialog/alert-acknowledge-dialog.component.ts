@@ -43,7 +43,7 @@ export class AlertAcknowledgeDialogComponent {
     this.saving = true;
     const formData = this.form.getRawValue();
 
-    this.alertService.acknowledge(this.data.id, {
+    this.alertService.acknowledge(this.data.id, this.data, {
       motivo: formData.motivo!,
       observaciones: formData.observaciones!
     }).subscribe({

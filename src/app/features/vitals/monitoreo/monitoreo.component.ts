@@ -7,17 +7,20 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { forkJoin, interval, of, startWith, switchMap } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
-import { Patient } from '../../../models/patient.model';
+import { ClinicalSeverity } from '../../../models/vital-sign.model';
+import { Patient, patientFullName } from '../../../models/patient.model';
 import { VitalSign } from '../../../models/vital-sign.model';
 import { PatientService } from '../../../services/patient.service';
 import { VitalSignService } from '../../../services/vital-sign.service';
 import { SeverityBadgeComponent } from '../../../shared/components/severity-badge/severity-badge.component';
+import { computeVitalSeverity } from '../../../shared/utils/vital-severity.util';
 
 interface MonitoringCard {
   patient: Patient;
   vital: VitalSign | null;
+  severity: ClinicalSeverity | null;
 }
 
 @Component({
@@ -62,18 +65,29 @@ export class MonitoreoComponent implements OnInit {
       });
   }
 
+  patientName(patient: Patient): string {
+    return patientFullName(patient);
+  }
+
   private loadMonitoringData() {
-    return this.patientService.getAll().pipe(
-      switchMap((patients) => {
-        const critical = patients.filter((p) => p.estado === 'CRITICO' || p.estado === 'OBSERVACION');
-        if (critical.length === 0) {
+    return forkJoin({
+      criticos: this.patientService.getByEstado('CRITICO'),
+      observacion: this.patientService.getByEstado('OBSERVACION')
+    }).pipe(
+      switchMap(({ criticos, observacion }) => {
+        const patients = [...criticos, ...observacion];
+        if (patients.length === 0) {
           return of([] as MonitoringCard[]);
         }
 
-        const requests = critical.map((patient) =>
+        const requests = patients.map((patient) =>
           this.vitalService.getLatest(patient.id).pipe(
             catchError(() => of(null)),
-            switchMap((vital) => of({ patient, vital } as MonitoringCard))
+            map((vital) => ({
+              patient,
+              vital,
+              severity: vital ? computeVitalSeverity(vital) : null
+            } as MonitoringCard))
           )
         );
 

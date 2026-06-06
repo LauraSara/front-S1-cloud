@@ -6,6 +6,17 @@
   }
 }
 
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.actions-cell {
+  white-space: nowrap;
+}
+
 .table-container {
   overflow-x: auto;
 }

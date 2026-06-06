@@ -1,6 +1,9 @@
 import { NgClass } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { Severity } from '../../../models/vital-sign.model';
+import { AlertSeverity } from '../../../models/alert.model';
+import { ClinicalSeverity } from '../../../models/vital-sign.model';
+
+export type BadgeSeverity = ClinicalSeverity | AlertSeverity;
 
 @Component({
   selector: 'app-severity-badge',
@@ -19,17 +22,17 @@ import { Severity } from '../../../models/vital-sign.model';
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-    .severity-normal {
+    .severity-normal, .severity-baja {
       background-color: rgba(25, 135, 84, 0.12);
       color: #198754;
       border: 1px solid rgba(25, 135, 84, 0.3);
     }
-    .severity-advertencia {
+    .severity-advertencia, .severity-media {
       background-color: rgba(255, 193, 7, 0.15);
       color: #b8860b;
       border: 1px solid rgba(255, 193, 7, 0.4);
     }
-    .severity-critico {
+    .severity-critico, .severity-alta {
       background-color: rgba(220, 53, 69, 0.12);
       color: #dc3545;
       border: 1px solid rgba(220, 53, 69, 0.3);
@@ -37,22 +40,28 @@ import { Severity } from '../../../models/vital-sign.model';
   `]
 })
 export class SeverityBadgeComponent {
-  @Input({ required: true }) severity!: Severity;
+  @Input({ required: true }) severity!: BadgeSeverity;
 
   get severityClass(): string {
-    const map: Record<Severity, string> = {
+    const map: Record<BadgeSeverity, string> = {
       NORMAL: 'severity-normal',
       ADVERTENCIA: 'severity-advertencia',
-      CRITICO: 'severity-critico'
+      CRITICO: 'severity-critico',
+      BAJA: 'severity-baja',
+      MEDIA: 'severity-media',
+      ALTA: 'severity-alta'
     };
     return map[this.severity];
   }
 
   get label(): string {
-    const map: Record<Severity, string> = {
+    const map: Record<BadgeSeverity, string> = {
       NORMAL: 'Normal',
       ADVERTENCIA: 'Advertencia',
-      CRITICO: 'Crítico'
+      CRITICO: 'Crítico',
+      BAJA: 'Baja',
+      MEDIA: 'Media',
+      ALTA: 'Alta'
     };
     return map[this.severity];
   }

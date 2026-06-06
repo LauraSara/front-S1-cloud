@@ -38,8 +38,10 @@ export class PatientFormDialogComponent implements OnInit {
   saving = false;
 
   readonly form = this.fb.group({
-    nombre: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
+    nombre: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
+    apellido: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
     rut: ['', [Validators.required, rutValidator()]],
+    edad: [null as number | null, [Validators.required, Validators.min(0), Validators.max(150)]],
     habitacion: ['', [Validators.required, Validators.pattern(/^[A-Z]?\d{3,4}$/i)]],
     diagnostico: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(500)]],
     estado: ['ESTABLE' as PatientStatus, Validators.required]
@@ -64,7 +66,10 @@ export class PatientFormDialogComponent implements OnInit {
     this.saving = true;
     const formData = this.form.getRawValue() as PatientFormData;
     const request$ = this.isEdit
-      ? this.patientService.update(this.data.patient!.id, formData)
+      ? this.patientService.update(this.data.patient!.id, {
+          ...this.data.patient!,
+          ...formData
+        })
       : this.patientService.create(formData);
 
     request$.subscribe({

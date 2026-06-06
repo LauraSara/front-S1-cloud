@@ -15,15 +15,15 @@
     @for (card of cards; track card.patient.id) {
       <mat-card
         class="monitor-card"
-        [class.critical-pulse]="card.vital?.severidad === 'CRITICO'"
+        [class.critical-pulse]="card.severity === 'CRITICO'"
       >
         <div class="card-header">
           <div>
-            <h3>{{ card.patient.nombre }}</h3>
+            <h3>{{ patientName(card.patient) }}</h3>
             <span class="room">Hab. {{ card.patient.habitacion }}</span>
           </div>
-          @if (card.vital) {
-            <app-severity-badge [severity]="card.vital.severidad" />
+          @if (card.severity) {
+            <app-severity-badge [severity]="card.severity" />
           }
         </div>
 
@@ -50,7 +50,7 @@
               <span class="unit">°C</span>
             </div>
           </div>
-          <p class="timestamp">{{ card.vital.fechaRegistro | date:'dd/MM/yyyy HH:mm:ss' }}</p>
+          <p class="timestamp">{{ card.vital.fechaHora | date:'dd/MM/yyyy HH:mm:ss' }}</p>
         } @else {
           <p class="no-data">Sin mediciones recientes</p>
         }

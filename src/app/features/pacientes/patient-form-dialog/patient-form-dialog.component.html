@@ -3,13 +3,24 @@
 <mat-dialog-content>
   <form [formGroup]="form" class="patient-form">
     <mat-form-field appearance="outline">
-      <mat-label>Nombre completo</mat-label>
+      <mat-label>Nombre</mat-label>
       <input matInput formControlName="nombre" />
       @if (form.controls.nombre.hasError('required')) {
         <mat-error>El nombre es obligatorio.</mat-error>
       }
       @if (form.controls.nombre.hasError('minlength')) {
-        <mat-error>Mínimo 3 caracteres.</mat-error>
+        <mat-error>Mínimo 2 caracteres.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Apellido</mat-label>
+      <input matInput formControlName="apellido" />
+      @if (form.controls.apellido.hasError('required')) {
+        <mat-error>El apellido es obligatorio.</mat-error>
+      }
+      @if (form.controls.apellido.hasError('minlength')) {
+        <mat-error>Mínimo 2 caracteres.</mat-error>
       }
     </mat-form-field>
 
@@ -24,6 +35,17 @@
       }
       @if (form.controls.rut.hasError('rutInvalid')) {
         <mat-error>Dígito verificador incorrecto.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Edad</mat-label>
+      <input matInput type="number" formControlName="edad" />
+      @if (form.controls.edad.hasError('required')) {
+        <mat-error>La edad es obligatoria.</mat-error>
+      }
+      @if (form.controls.edad.hasError('min') || form.controls.edad.hasError('max')) {
+        <mat-error>Edad entre 0 y 150.</mat-error>
       }
     </mat-form-field>
 

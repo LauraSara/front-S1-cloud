@@ -1,6 +1,12 @@
 <div class="page-header">
-  <h2 class="vg-page-title">Alertas médicas</h2>
-  <p class="vg-page-subtitle">Gestión y confirmación de alertas de signos vitales</p>
+  <div>
+    <h2 class="vg-page-title">Alertas médicas</h2>
+    <p class="vg-page-subtitle">Gestión y confirmación de alertas de signos vitales</p>
+  </div>
+  <button mat-flat-button color="primary" (click)="openCreate()">
+    <mat-icon>add</mat-icon>
+    Nueva alerta
+  </button>
 </div>
 
 <div class="filters">
@@ -18,7 +24,7 @@
   <div class="loading"><mat-spinner diameter="48"></mat-spinner></div>
 } @else {
   <div class="table-container vg-card">
-    <table mat-table [dataSource]="filteredAlerts">
+    <table mat-table [dataSource]="alerts">
       <ng-container matColumnDef="paciente">
         <th mat-header-cell *matHeaderCellDef>Paciente</th>
         <td mat-cell *matCellDef="let row">{{ row.pacienteNombre }}</td>
@@ -29,9 +35,9 @@
         <td mat-cell *matCellDef="let row">{{ row.tipo }}</td>
       </ng-container>
 
-      <ng-container matColumnDef="mensaje">
-        <th mat-header-cell *matHeaderCellDef>Mensaje</th>
-        <td mat-cell *matCellDef="let row">{{ row.mensaje }}</td>
+      <ng-container matColumnDef="descripcion">
+        <th mat-header-cell *matHeaderCellDef>Descripción</th>
+        <td mat-cell *matCellDef="let row">{{ row.descripcion }}</td>
       </ng-container>
 
       <ng-container matColumnDef="severidad">
@@ -50,18 +56,23 @@
 
       <ng-container matColumnDef="fecha">
         <th mat-header-cell *matHeaderCellDef>Fecha</th>
-        <td mat-cell *matCellDef="let row">{{ row.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</td>
+        <td mat-cell *matCellDef="let row">{{ row.fechaHora | date:'dd/MM/yyyy HH:mm' }}</td>
       </ng-container>
 
       <ng-container matColumnDef="acciones">
         <th mat-header-cell *matHeaderCellDef>Acciones</th>
-        <td mat-cell *matCellDef="let row">
+        <td mat-cell *matCellDef="let row" class="actions-cell">
           @if (row.estado === 'ACTIVA') {
-            <button mat-flat-button color="primary" (click)="openAcknowledge(row)">
+            <button mat-icon-button color="primary" (click)="openAcknowledge(row)" aria-label="Atender">
               <mat-icon>check_circle</mat-icon>
-              Atender
             </button>
           }
+          <button mat-icon-button (click)="openEdit(row)" aria-label="Editar">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button color="warn" (click)="confirmDelete(row)" aria-label="Eliminar">
+            <mat-icon>delete</mat-icon>
+          </button>
         </td>
       </ng-container>
 
@@ -69,7 +80,7 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
     </table>
 
-    @if (filteredAlerts.length === 0) {
+    @if (alerts.length === 0) {
       <p class="empty">No hay alertas para mostrar.</p>
     }
   </div>

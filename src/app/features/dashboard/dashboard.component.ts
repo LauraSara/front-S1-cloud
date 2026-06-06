@@ -33,7 +33,7 @@ export class DashboardComponent implements OnInit {
   loading = true;
   error = false;
 
-  readonly displayedColumns = ['paciente', 'tipo', 'mensaje', 'severidad', 'fecha'];
+  readonly displayedColumns = ['paciente', 'tipo', 'descripcion', 'severidad', 'fecha'];
 
   ngOnInit(): void {
     interval(environment.pollingIntervalDashboard)
